@@ -1,0 +1,61 @@
+This documentation purpose is to help with some common cases you may run accross.
+
+
+Locate a line in a combined javascript or stylesheet file
+=========================================================
+
+If you want to find code from a line number, do a "View Source" of the javascript or stylesheet file itself. The resulting source is the same, but the view source window includes line numbers.
+
+Now you can press CTRL-L to jump to a line number, relative to the combined javascript or stylesheet file.
+
+
+Managing dependencies with YUI 3 modules
+========================================
+
+The YUI 3 website provides a dependency configurator:
+
+ http://developer.yahoo.com/yui/3/configurator/
+
+Select the components you need, then copy the urls from the "Results" box and convert them into `=require` directives for Juicer. For each require path delete the absolute part of the url up to, and including `build`.
+
+To make this process easier, you can do this once, and then comment/uncomment specific includes:
+
+/* =require from "%YUI3%" */
+
+/* =require "/yui/yui-base-min.js" */
+/* =require "/oop/oop-min.js" */
+/* ...etc... */
+/* =require "/event-custom/event-custom-min.js" */
+/* =require "/classnamemanager/classnamemanager-min.js" */
+
+/* these are disabled */
+
+///* !require "/widget/widget-min.js" */
+///* !require "/widget/widget-position-min.js" (overlay) */
+///* !require "/widget/widget-position-ext-min.js" (overlay) */
+///* !require "/widget/widget-stack-min.js" (overlay) */
+///* !require "/widget/widget-stdmod-min.js" (overlay) */
+
+Or you can create yourself different sets:
+
+ // Include slider plus all its dependencies
+ // (remember Juicer will not include the same file twice)
+
+ /* =require from "%MYAPP%" */
+
+ /* =require "/lib/yui/yui-common.js" */    <= this one contains requires for all the basic yui modules
+
+ /* =require "/lib/yui/yui-slider.js" */    <= this one contains all basic yui modules PLUS slider dependencies
+
+
+Preloaded modules in YUI 3
+==========================
+
+If you have included all dependencies in the Juicer output, you can instance YUI without specifying any further modules:
+
+    var YUI = YUI().use("*");
+    
+    YUI.on('domready', function() {
+      ...
+    });
+

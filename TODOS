@@ -1,0 +1,42 @@
+# TODOS #
+
+This is a collection of ideas and known issues that can be worked on for further releases:
+
+
+## JuicerCLI.php ##
+
+ * Add option for explicit naming of output file (--o <file>)
+ * Add option to define constants on the command line (--D xxx=yyy)
+ * Add support for `=require "%PATH%/bla/blah"` syntax without a previous `=require from "%PATH%"` (may be more handy sometimes)
+ * Verbose mode: show total of included files
+ * Verbose mode: show total of copied, excluded, and ignored (unchanged) assets, eg. "15 assets copied, 32 ignored (not modifed), 5 excluded (*.psd,*.txt,*.bak)" (the last one simply echoes the WEB_EXCL option.
+
+
+## Juicer.php ##
+
+ * Find a way to ignore everything that is within comments (including commented css rules), when applying the url translations; without removing comments from the output file. The removal of comments is meant to be done by the "minifier" tool. Ideally Jucier would leave comments for debugging purposes, but the simplest way so far I found to parse everything BUT the comments was to remove them.
+ * stripOutput() add support to strip multiple methods from the output files (now hardcoded to one method)
+ * Improve the stripOutput() regexp... to properly match strings and weird parameters in method calls (make it foolproof).
+ * Warn when a stylesheet points to an asset that is outside of the `=provide` path. This happens when the relative path backtracks with "..". The current version ignore those files (the reason for that is that the relative path is replicated on the destination folder in the web root).
+
+
+## Refactor ##
+
+ * Write some tests for the css url property regexp (probably is not foolproof yet), which is used to match urls in the stylesheet.
+ * Write some tests for the variable substitution regexp matching.
+ * Use a standard command line parsing library ([Zend Console](http://framework.zend.com/manual/en/zend.console.getopt.html) or Symfony's [sfCommandManager](http://www.symfony-project.org/api/1_2/sfCommandManager)). Ideally Juicer.php should have no dependency to the command line parsing, only JuicerCLI.php, because Juicer.php should be usable as a single php include from the htaccess script.
+
+
+## Someday/maybe ##
+
+These are things I'm not sure I want to implement yet, or haven't estimated yet:
+
+ * Simple C style preprocessor commands for conditional compiles, eg. `=ifdef(FOO)` where FOO would be defined in the constants to allow copying that part of the code to the output file. Copy known syntax from C or elsewhere (ifdef, ifndef, if true, if not true).
+ * Disable constant substitution for extern libs where the `%CONST%` pattern may have undesired effect (probably best to set flag per source path, eg. apply to all `=require from "%YUI%"`) ... or make the variable pattern matching `%CONST%` foolproof.. somehow.
+
+
+## Juicer Package ##
+
+ * Add simple demo for the variables
+ * Add common sets of includes that can be used with javascript libraries (YUI2, YUI3, ...)
+

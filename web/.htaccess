@@ -1,0 +1,9 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # redirect versioned assets to php handler + dynamic "juicing" of css/js
+  RewriteRule ^(.*)_v[0-9.]+(css|js)$   /version/cache.php?path=$1.$2 [L]
+
+  # ... framework specifics here ...
+
+</IfModule>

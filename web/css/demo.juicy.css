@@ -1,0 +1,21 @@
+/**
+ * This is the main include file for the production stylesheet.
+ * 
+ * Command-line build:
+ *  php lib/juicer/JuicerCLI.php -v --webroot web --config config/juicer.config.php --infile web/css/demo.juicy.css
+ * 
+ */
+
+/* =require from "%YUI3%" */
+
+/* !require "/cssreset/reset-min.css" */
+/* =require "/cssfonts/fonts-min.css" */
+
+/* Dependencies for the slider demo */
+
+/* =require "/widget/assets/skins/sam/widget.css" */
+/* =require "/slider/assets/skins/sam/slider.css" */
+
+/* Copy the slider's asset files */
+
+/* =provide "/slider/assets/skins" */

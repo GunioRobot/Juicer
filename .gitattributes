@@ -1,0 +1,5 @@
+* crlf=input
+*.png binary
+*.jar binary
+*.gif binary
+
