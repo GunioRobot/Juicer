@@ -63,7 +63,7 @@ class Juicer_CLI
     }
 
     if (!file_exists($infile)) {
-      $this->throwError("Invalid source file");
+      $this->throwError("File not found: %s", $infile);
     }
     
     // set webroot qualified path
@@ -73,7 +73,7 @@ class Juicer_CLI
     $constants = array();
     $configFile = $this->args->flag('config');
     if (!file_exists($configFile)) {
-      $this->throwError("File not found: " . $configFile);
+      $this->throwError("File not found: %s", $configFile);
     }
     else {
       $constants = require($configFile);

@@ -163,6 +163,9 @@ class Juicer
       // 
       $lineNr = 1;
       $this->curFile = $srcFile;
+
+      // skip the BOM mark, if any
+      $this->skipUTF8BomMark($handle);
       
       // start buffering content of this file
       ob_start();
@@ -170,7 +173,7 @@ class Juicer
       while (!feof($handle))
       {
         $buffer = fgets($handle, 4096);
-        
+
         // parse commands
         if (strncmp($buffer, '/* =', 4)===0)
         {
@@ -202,6 +205,30 @@ class Juicer
     }
 
     return $buffer . "\n";
+  }
+
+  /**
+   * Move the file pointer past the UTF-8 Byte Order Mark (BOM) if it exists.
+   *
+   * @see http://en.wikipedia.org/wiki/Byte_order_mark
+   * 
+   * @param string $handle  File handle (assumed to be at the start of the file)
+   */
+  protected function skipUTF8BomMark($handle)
+  {
+    if (!feof($handle))
+    {
+      $s = fgets($handle, 4);
+
+      //$this->verbose("bom found %s l=%d", $s, strlen($s));
+
+      if ($s === pack("CCC", 0xef, 0xbb, 0xbf))
+      {
+        $this->verbose("  BOM mark skipped!\n");
+        return;
+      }
+      rewind($handle);
+    } 
   }
   
   protected function parseCommand($buffer, &$from, $srcFile, $lineNr)
