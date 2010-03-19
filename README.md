@@ -207,7 +207,7 @@ The (semi-) absolute paths are useful when you want to provide assets from a dif
 Coming back to the "what you see is what you get" motto, Juicer computes the destination path for source assets in a very predictable way:
 
 * Use the absolute path of the specified web document root (set with --webroot on the command line, or `WEB_PATH` in the Juicer class constructor)
-* If a MAPPING is defined in the config file that matches the path where the asset comes from, create the mapping sunfolder.
+* If a MAPPING is defined in the config file that matches the path where the asset comes from, create the mapping subfolder.
 * Create any remaining subfolders that are between the current `require from` path the `provide` path.
 * Duplicate all the subfolders and assets from the `provide` path to the computed destination path.
 
