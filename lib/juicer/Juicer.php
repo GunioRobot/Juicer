@@ -3,23 +3,23 @@
  * Juicer is a php tool that preprocesses, concatenates javascript and stylesheets,
  * and copies images and other assets to the web document root, optionally remapping
  * folders to desired names.
- * 
+ *
  * Constructor options:
  *   WEB_PATH   Path to the document root served by the web server. Base folder for copying
  *              assets, base folder for the translated assets urls in stylesheet rules.
  *   WEB_EXCL   File patterns to exclude from asset copying, separated by commas
- *   
+ *
  *   VERBOSE    Verbose log of the source file parsing, required files, copied assets
- *   
+ *
  *   STRIP      A function call expression, without the arguments, to strip from the output
  *              For example: "console.log" to remove all Firebug console.log calls
- *              
+ *
  * Command line options:
- *   For command line usage, see JuicerCLI.php documentation. 
- * 
+ *   For command line usage, see JuicerCLI.php documentation.
+ *
  * Todos:
  *   For a list of todos, and further development ideas, please see the TODOS file.
- * 
+ *
  * @author   Fabrice Denis
  * @version  1.0
  * @license  Please view the LICENSE file that was distributed with this source code.
@@ -37,23 +37,23 @@ class Juicer
     $alreadyParsed  = array(),
     $translatedUrls = array(),
     $cli            = null;
-    
+
   const
     /**
      * Used with rtrim() or ltrim() to clean the ends of path names.
      */
     SLASHES_WHITESPACE  = " \t\n\r\\/",
-    
+
     /**
      * Pattern used to match constants in source file.
-     * 
+     *
      * Do not accept newline characters in the middle, case sensitive
-     * 
+     *
      * Using the dollar sign, which is a valid in a javascript variable name, because
      * that will not generate validation warnings in a javascript editor.
      */
     PREG_CONSTANT       = '|\%(\w+)\%|',
-    
+
     FILE_PATTERN_JUICY  = '.juicy.',
 
     FILE_PATTERN_JUICED = '.juiced.';
@@ -61,7 +61,7 @@ class Juicer
 
   /**
    * Constructor.
-   * 
+   *
    * @param $options
    * @param $constants
    */
@@ -95,7 +95,7 @@ class Juicer
 
   /**
    * Parse the source file and copy required assets to the web path.
-   * 
+   *
    * @param  string $infile  Source file to parse and "build".
    * @return string  Result of parsed source file (concatenated scripts)
    */
@@ -109,17 +109,17 @@ class Juicer
     $srcFile = realpath($infile);
 
     $buffer = $this->requireFile($srcFile, null);
-    
+
     // strip code from resulting file
     if ($this->stripLogs !== false) {
       $buffer = $this->stripOutput($buffer, array($this->stripLogs));
     }
-    
+
     // css urls
     if ($this->getFileExtension($infile) === 'css') {
       $buffer = $this->translateUrlCleanup($buffer);
     }
-    
+
     // verbose logs (command line only)
     if ($this->cli)
     {
@@ -131,45 +131,45 @@ class Juicer
           foreach ($this->translatedUrls as $src => $dst) {
             $list[] = ' <WEB_PATH>/' . $dst;
           }
-          
+
           $this->verbose("\nList of assets used by stylesheets:\n\n" . implode("\n", $list));
         }
         $this->verbose("\n %d assets referenced in stylesheets.\n", $total);
       }
     }
-    
-    return $buffer; 
+
+    return $buffer;
   }
-  
+
   /**
    * Include and parse the contents of a "juicy" file (a file that can have Juicer commands :)).
-   * 
+   *
    * From path defaults to the current file location (absolute)
-   * 
+   *
    * @param string $srcFile    Current file's realpath
    * @param string $from       Current setting of the require from command (=base path for includes).
-   * 
+   *
    */
   protected function requireFile($srcFile, $from)
   {
     if (!file_exists($srcFile)) {
       $this->throwException(' File does not exist: "%s"', $srcFile);
     }
-    
+
     // parse the source file
     $handle = @fopen($srcFile, "r");
     if ($handle)
     {
-      // 
+      //
       $lineNr = 1;
       $this->curFile = $srcFile;
 
       // skip the BOM mark, if any
       $this->skipUTF8BomMark($handle);
-      
+
       // start buffering content of this file
       ob_start();
-    
+
       while (!feof($handle))
       {
         $buffer = fgets($handle, 4096);
@@ -182,20 +182,20 @@ class Juicer
 
         // echo to the current buffer
         echo $buffer;
-        
+
         $lineNr++;
       }
       fclose($handle);
 
       // get the parsed content of this file
       $buffer = ob_get_clean();
-      
+
       // now we can do css assets url remapping
       if ($this->getFileExtension($srcFile) === 'css') {
         $buffer = $this->cleanComments($buffer);
-        $buffer = $this->translateAssetsUrls($buffer, $srcFile, $from);        
+        $buffer = $this->translateAssetsUrls($buffer, $srcFile, $from);
       }
-      
+
       // replace constants
       $buffer = $this->substituteConstants($buffer);
     }
@@ -211,7 +211,7 @@ class Juicer
    * Move the file pointer past the UTF-8 Byte Order Mark (BOM) if it exists.
    *
    * @see http://en.wikipedia.org/wiki/Byte_order_mark
-   * 
+   *
    * @param string $handle  File handle (assumed to be at the start of the file)
    */
   protected function skipUTF8BomMark($handle)
@@ -228,9 +228,9 @@ class Juicer
         return;
       }
       rewind($handle);
-    } 
+    }
   }
-  
+
   protected function parseCommand($buffer, &$from, $srcFile, $lineNr)
   {
     if (preg_match('/^require from "([^"]+)"/', $buffer, $matches))
@@ -248,12 +248,12 @@ class Juicer
           $this->throwException('Woops, constant "%s" is not defined, trying to use at line %d.', $constName, $lineNr);
         }
       }
-      
+
       // set the current path for includes
       $from = $this->normalizeSlashes($fromValue);
 
       $this->verbose(' =require from %s(%s)"', ($constName!=='' ? '%'.$constName.'% ' : ''), $from);
-      
+
     }
     else if (preg_match('/^require "([^"]+)"/', $buffer, $matches))
     {
@@ -263,14 +263,14 @@ class Juicer
 
       $reqFile = $this->normalizeSlashes($matches[1]);
       $this->verbose(' =require file "%s" (line %d in %s)', $matches[1], $lineNr, $srcFile);
-      
+
       // relative path
       if ($this->isRelativePath($reqFile)) {
         $this->throwException('Relative path in require directive, not implemented yet (use /...)');
       }
       else {
         // $reqFile starts with separator
-        $file = $from . $reqFile;        
+        $file = $from . $reqFile;
       }
 
       //$this->verbose(' =require file "%s" => "%s"', $reqFile, $file);
@@ -280,17 +280,17 @@ class Juicer
       {
         // set the flag before parsing the file to solve include loop!
         $this->alreadyParsed[$file] = true;
-        
+
         return $this->requireFile($file, $from, $srcFile);
       }
     }
     else if (preg_match('/^provide "([^"]+)"/', $buffer, $matches))
     {
       $path = $this->removeTrailingSlash($matches[1]);
-      
+
       // handle absolute and relative paths
       if (substr($path, 0, 1) === '/') {
-        $providePath = $from . $this->normalizeSlashes($path); 
+        $providePath = $from . $this->normalizeSlashes($path);
         $this->verbose(' =provide (absolute path): "%s"', $providePath);
       }
       else {
@@ -307,22 +307,22 @@ class Juicer
 
     return '';
   }
-  
+
   /**
-   * 
+   *
    *
    */
   private function copyAssets($srcPath, $from)
   {
     // determine the destination folder from the web root
     $destPath = $this->mapAssetsPathToWebPath($srcPath, $from);
-    
+
     //$this->verbose(' copyAssets() from %s to %s', $srcPath, $destPath);
-    
+
     // first create folders from the webpath to the destination assets path,
     // skip those that already exist
     $this->createPath($this->webPath, $destPath);
-    
+
     // copy assets one by one and create sub folders as needed
 
     $this->copyr($srcPath, $destPath);
@@ -331,15 +331,15 @@ class Juicer
   /**
    * Create any number of subfolders, from a start folder.
    * Create the sub folders one by one, if they don't exist already.
-   * Throws an exception as soon as it meets an invalid folder.  
-   * 
+   * Throws an exception as soon as it meets an invalid folder.
+   *
    * @param {string} $startPath  Path to start from, must exist!
    * @param {string} $endPath    The start path with sub folders
    */
   private function createPath($startPath, $endPath)
   {
     $relPath = $this->getRelativePathFrom($endPath, $startPath);
-    
+
     $folders = preg_split('/\//', $relPath);
     $curPath = $startPath;
     foreach ($folders as $folder)
@@ -354,9 +354,9 @@ class Juicer
 
   /**
    * Copy a file, or recursively copy a folder and its contents
-   * 
+   *
    * Adapted from http://aidanlister.com/repos/v/function.copyr.php by  Aidan Lister
-   * 
+   *
    * @param       string   $source    Source path
    * @param       string   $dest      Destination path
    * @return      bool     Returns TRUE on success, FALSE on failure
@@ -404,12 +404,12 @@ class Juicer
     $dir->close();
     return true;
   }
-  
+
   /**
    * Copy one asset file to its destination if it does not exist, or it has been modified.
-   * 
+   *
    * Uses the modified file time to determine if the destination should be replaced.
-   * 
+   *
    * @param  string  $source   Fully qualified path of source file
    * @param  string  $dest     Fully qualified path of destination file
    */
@@ -424,7 +424,7 @@ class Juicer
         return;
       }
     }
-    
+
     if (true === copy($source, $dest))
     {
       // preserve the file modified time (win32)
@@ -438,8 +438,8 @@ class Juicer
 
   /**
    * Returns true if the asset with the given filename should be excluded
-   * from copying to web folder.  
-   * 
+   * from copying to web folder.
+   *
    * @param  string $file   Fully qualified file name
    * @return boolean
    */
@@ -456,57 +456,57 @@ class Juicer
         return true;
       }
     }
-    
+
     return false;
   }
-  
+
   /**
-   * 
+   *
    */
   private function substituteConstants($buffer)
   {
     return preg_replace_callback(self::PREG_CONSTANT, array($this, 'substituteConstantCallback'), $buffer);
   }
-  
+
   private function substituteConstantCallback($matches)
   {
     $constName = $matches[1];
     $constValue = $this->getConstant($constName, false);
-    
+
     if (false === $constValue) {
       $this->throwException('The constant "%s" is not defined (used by "%s").', $constName, $this->curFile);
     }
-    
+
     // return the constant as is if not found
     return $constValue;
   }
-  
+
   /**
    * Map all the relative urls in the stylesheet to their new location in the web folder.
-   * 
+   *
    * @see   translateUrlCallback()
-   * 
+   *
    * @param string $buffer   String containing stylesheet code
    * @param string $srcFile  Fully qualified source file name
-   * @param string $webPath  
-   * 
-   * @return 
+   * @param string $webPath
+   *
+   * @return
    */
   private function translateAssetsUrls($buffer, $srcFile, $from)
   {
     // trying to avoid globals and curry madness ..
     $this->preg_srcFile = $srcFile;
     $this->preg_from = $from;
-   
-    // skips urls that have already been translated (those that start with a caret) 
+
+    // skips urls that have already been translated (those that start with a caret)
     $buffer = preg_replace_callback('|url\((?=[^#])\\s*["\']?([^)"\']+)["\']?\\s*\)|', array($this, 'translateUrlCallback'), $buffer);
     return $buffer;
   }
-  
+
   /**
-   * 
+   *
    * @param object $matches
-   * @return 
+   * @return
    */
   private function translateUrlCallback(array $matches)
   {
@@ -522,44 +522,44 @@ class Juicer
     {
       $path_parts = pathinfo($assetUrl);
       $assetName = $path_parts['basename'];
-  
+
       // can not work with absolute asset urls
       if (!$this->isRelativePath($assetUrl)) {
         $this->throwException('Invalid absolute asset url "%s" in source file "%s" (fix: use relative paths).', $matches[1], $this->preg_srcFile);
       }
-  
+
       // find the qualified asset path in the source location
       $sourcePath = dirname($this->preg_srcFile) . DIRECTORY_SEPARATOR . $assetUrl;
       $assetPath = realpath($sourcePath);
-      
+
       // check that the asset path is correct, the asset file must exist in the source
       if ($assetPath === false) {
         $this->throwException('The asset path "%s" is invalid in source file "%s"', $matches[1], $this->preg_srcFile);
       }
-  
+
       // find the location in the web folder it maps to
       $destPath = $this->mapAssetsPathToWebPath(dirname($assetPath), $this->preg_from) . DIRECTORY_SEPARATOR . $assetName;
-      
+
       // now find the relative path from the web path
       $destPath = $this->forwardSlashes($this->getRelativePathFrom($destPath, $this->webPath));
-      
+
       //$this->verbose(' Translated url(%s) to %s', $assetUrl, $destPath);
-      
+
       $this->translatedUrls[$assetUrl] = $destPath;
     }
-    
+
     // prepend url with a special character to avoid translating urls twice, see translateUrlCleanup()
     return 'url(#/' . $destPath . ')';
-  } 
-  
+  }
+
   /**
    * Resolves references to '/./', '/../' and extra '/' characters in the input path,
    * and returns the canonicalized absolute pathname.
-   * 
+   *
    * NOTE: UNUSED
-   * 
+   *
    * @see   http://www.php.net/manual/en/function.realpath.php#84012
-   * 
+   *
    * @param string $path
    * @return string
    */
@@ -582,37 +582,37 @@ class Juicer
     }
     return implode(DIRECTORY_SEPARATOR, $absolutes);
   }
-  
+
   /**
    * Remove the carets we inserted in the stylesheet urls,
    * after all stylesheets have been included and processed.
-   * 
+   *
    * @param string $buffer
-   * @return string 
+   * @return string
    */
   private function translateUrlCleanup($buffer)
   {
     return preg_replace('|url\(#|', 'url(', $buffer);
   }
-  
+
   /**
    * Map an asset path to destination path in the web folder.
-   * 
-   * Eg: D:/Dev/yui2.7.0/build/button/assets  =>   <webPath>/<mapfolder>/<relSrcPath> 
-   *  
-   * @param string $path  Source path, absolute 
-   * @param string $from  
+   *
+   * Eg: D:/Dev/yui2.7.0/build/button/assets  =>   <webPath>/<mapfolder>/<relSrcPath>
+   *
+   * @param string $path  Source path, absolute
+   * @param string $from
    */
   private function mapAssetsPathToWebPath($srcPath, $from)
   {
     $relPath = $this->getRelativePathFrom($srcPath, $from);
-    
+
     return $this->getWebPath($srcPath) . DIRECTORY_SEPARATOR . $relPath;
   }
 
   /**
    * Return a relative path from an absolute path, given the base path.
-   * 
+   *
    * @param  string $path  Fully qualified source path, can include filename
    * @param  string $base  Fully qualified base path (no filename)
    * @return string  Relative path, without leading separator
@@ -624,21 +624,21 @@ class Juicer
 
       $this->throwException('getRelativePathFrom() path (%s) does not start with base (%s)', $path, $base);
     }
-    
+
     $relPath = substr($path, strlen($base));
-    
+
     return ltrim($relPath, self::SLASHES_WHITESPACE);
-    
+
   }
-  
+
   /**
    * Returns absolute path to web folder destination, using mapping if defined.
-   * 
-   * path must be asbolute 
+   *
+   * path must be asbolute
    */
   private function getWebPath($srcPath)
   {
-    // todo: mappings: if one of mapped forlders matches beginning of $srcPath, return webPath + mapped path 
+    // todo: mappings: if one of mapped forlders matches beginning of $srcPath, return webPath + mapped path
     foreach ($this->mappings as $absPath => $relWebPath)
     {
       if (stripos($srcPath, $this->normalizeSlashes($absPath)) === 0)
@@ -646,24 +646,24 @@ class Juicer
         // TODO: add diff path (eg. mapping to a sub part of require from path
         // eg:  D:/Dev/build (from), D:/Dev (map to 'foobar')  =>  <webRoot>/foobar/build
         //        extra '/build' path due to difference between mapped folder and require folder
-        
+
         return $this->webPath . DIRECTORY_SEPARATOR . $relWebPath;
       }
     }
 
     return $this->webPath;
-  } 
+  }
 
   /**
    * Remove all calls to given functions in the output javascript.
-   * 
+   *
    * This is useful for example to remove all calls to Firebug's console.log(),
-   * in the production file.  
-   * 
+   * in the production file.
+   *
    * @param string $buffer Output buffer (javascript)
    * @param array $methods An array of function names or expression such as "App.log"
-   * 
-   * @return string 
+   *
+   * @return string
    */
   public function stripOutput($buffer, $methods)
   {
@@ -672,15 +672,15 @@ class Juicer
     $pattern = '/' . $methodName . '\(\\s*("[^"\\\]*(\\\.[^"\\\]*)*"|[^\)]*)\)[^\\r\\n;]*;' . '/';
 
     /* The regular expression itself */
-    return preg_replace($pattern, '', $buffer, -1, $count); 
+    return preg_replace($pattern, '', $buffer, -1, $count);
   }
-  
+
   /**
    * Remove all C style comments from the buffer.
-   * 
+   *
    * C-style comments starting with /*! are preserved.
-   * (same behaviour as YUI Compressor 2.3.3+) 
-   * 
+   * (same behaviour as YUI Compressor 2.3.3+)
+   *
    * @param string $s
    * @return string
    */
@@ -693,20 +693,20 @@ class Juicer
 
   /**
    * Returns true if path is relative, false if it begins with DIRECTORY_SEPARATOR.
-   * 
-   * Note! Must use normalizeSlashes() before this function! 
-   * 
-   * @param string $path  A path with NORMALIZED slashes 
-   * @return boolean 
-   */  
+   *
+   * Note! Must use normalizeSlashes() before this function!
+   *
+   * @param string $path  A path with NORMALIZED slashes
+   * @return boolean
+   */
   protected function isRelativePath($path)
   {
     return (substr($path, 0, 1) !== DIRECTORY_SEPARATOR);
-  } 
-  
+  }
+
   /**
    * Convert slashes to the system's DIRECTORY_SEPARATOR (backslash on Windows).
-   * 
+   *
    * @param string $path  A file path
    * @return string
    */
@@ -714,17 +714,17 @@ class Juicer
   {
     return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
   }
-  
+
   /**
    * Makes all slashes forward, as used in web urls.
-   * 
-   * @return string 
+   *
+   * @return string
    */
   protected function forwardSlashes($path)
   {
     return str_replace('\\', '/', $path);
   }
-  
+
   /**
    * Trim any unwanted characters from the tail of the pathname,
    * including slash and backslash characters.
@@ -738,7 +738,7 @@ class Juicer
 
   /**
    * Returns file extension in lowercase, or an empty string.
-   * 
+   *
    * @return string   File extension, always lowercase
    */
   private function getFileExtension($path)
@@ -749,35 +749,35 @@ class Juicer
 
   /**
    * Returns an option value, or the default value if not set.
-   * 
+   *
    * If both the option value and default value are not set, throws
    * an exception to indicate that the option value is missing.
-   * 
+   *
    */
   private function getOption($name, $default = null)
   {
     if (($value = $this->getArrayKey($this->options, $name, $default)) === null) {
-      $this->throwException(' OPTION "%s" required but not set.', $name);      
+      $this->throwException(' OPTION "%s" required but not set.', $name);
     }
     return $value;
   }
-  
+
   /**
    * Similar to getOption(), returns a constant value or default value,
-   * throws an exception if using an undefined constant without default value. 
+   * throws an exception if using an undefined constant without default value.
    *
    */
   private function getConstant($name, $default = null)
   {
     if (($value = $this->getArrayKey($this->constants, $name, $default)) === null) {
-      $this->throwException(' CONSTANT "%s" used but not set.', $name);      
+      $this->throwException(' CONSTANT "%s" used but not set.', $name);
     }
     return $value;
   }
-  
+
   /**
-   * How more generic can you be? :p 
-   * 
+   * How more generic can you be? :p
+   *
    * Note: this doesn't support values of the null type.
    */
   private function getArrayKey(array $array, $name, $default = null)
@@ -787,7 +787,7 @@ class Juicer
     }
     return $default;
   }
-  
+
   /**
    * Output verbose message to the console.
    *
@@ -809,15 +809,15 @@ class Juicer
   {
     // clean content echoed for the current require() file
     ob_end_clean();
-    
+
     $args = func_get_args();
     $message = call_user_func_array('sprintf', $args);
-    throw new Exception($message);    
+    throw new Exception($message);
   }
 
   /**
-   * Begin couting execution time of the script. 
-   * 
+   * Begin couting execution time of the script.
+   *
    */
   public function profileStart()
   {
@@ -827,7 +827,7 @@ class Juicer
   /**
    * Return time elapsed by script execution.
    *
-   * @return string  
+   * @return string
    */
   public function profileEnd()
   {

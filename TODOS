@@ -34,7 +34,7 @@ These are things I'm not sure I want to implement yet, or haven't estimated yet:
  * Define local constants
 
    - Define local variables for use in the css/js, for example:
-     
+
      /* =define(DIALOG_W, 30) */
      .dlg-left  { position:absolute; left:-%DIALOG_W%px; top:0; height:100%; }
      .dlg-right { position:absolute; right:-%DIALOG_W%px; top:0; height:100%; }

@@ -54,7 +54,7 @@ Preloaded modules in YUI 3
 If you have included all dependencies in the Juicer output, you can instance YUI without specifying any further modules:
 
     var YUI = YUI().use("*");
-    
+
     YUI.on('domready', function() {
       ...
     });

@@ -1,18 +1,18 @@
 <?php
 /**
  * Parse Command Line Arguments in PHP.
- * 
+ *
  * This should be replaced with Zend Console or sfCommandManager..
- * 
+ *
  * Methods:
- * 
+ *
  *   flag(name)     Returns true if a flag is set, a string if explicit value was set,
- *                  or false if the flag was not set 
- * 
+ *                  or false if the flag was not set
+ *
  * Known bugs:
- * 
- *  -a -b foo bar 
- * 
+ *
+ *  -a -b foo bar
+ *
  *    Flags a=true, b=foo (correct), two arguments "foo" and "bar" (incorrect, should be only "bar")
  *
  * Based on code from Tyler Hall, released under MIT license
@@ -120,7 +120,7 @@ class SimpleArgs
 
   /**
    * Returns value of command line parameter, or false if not set.
-   * 
+   *
    * @param  string $name   Name of the command line flag
    * @return mixed
    */
@@ -128,11 +128,11 @@ class SimpleArgs
   {
     return isset($this->flags[$name]) ? $this->flags[$name] : false;
   }
-  
+
   /**
    * Returns number of flags specified on the command line.
-   * 
-   * @return int 
+   *
+   * @return int
    */
   public function getCount()
   {

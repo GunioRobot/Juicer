@@ -1,9 +1,9 @@
 /**
  * This is the main include file for the production scripts.
- * 
+ *
  * Command-line build:
  *  php lib/juicer/JuicerCLI.php -v --webroot web --config config/juicer.config.php --infile web/js/demo.juicy.js
- * 
+ *
  */
 
 /* =require from "%YUI3%" */

@@ -1,11 +1,11 @@
 <?php
 /**
  * A simple demonstration of Juicer.
- * 
+ *
  * Load up a custom combo file of YUI 3 components and run some javascript!
- * 
+ *
  * See php function at end for an example of "revisioning" javascript and stylesheets.
- * 
+ *
  * @author   Fabrice Denis
  * @date     20 Nov 2009
  * @license  Please view the LICENSE file that was distributed with this source code.
@@ -30,7 +30,7 @@ define('APP_ENVIRONMENT', 'dev');
   <body>
 
     <h1>Juicer demo</h1>
-    
+
 <p>This is the <a href="http://developer.yahoo.com/yui/3/examples/slider/slider_basic_clean.html">slider demo from the YUI 3 website</a>.</p>
 
 <p>Inspect the page with Firebug and you can see that the asset urls are now pointing to our web document root.
@@ -55,7 +55,7 @@ YUI().use("*", function (Y) {
 // store the node to display the vertical Slider's current value
 var v_report = Y.one('#vert_value'),
     vert_slider;
-    
+
 // instantiate the vertical Slider.  Use the classic thumb provided with the
 // Sam skin
 vert_slider = new Y.Slider({
@@ -93,24 +93,24 @@ new Y.Slider({
 </script>
 
 <!-- END OF YUI 3 EXAMPLE ( http://developer.yahoo.com/yui/3/examples/slider/slider_basic_clean.html ) -->
-    
+
   </body>
 </html>
 <?php
 
 /**
- * Returns a versioned resource url. 
- * 
+ * Returns a versioned resource url.
+ *
  * The .htaccess files redirects those "versioned" files to a php script that
  * will strip the version number to get the actual file, and return the file
  * gzipped if possible to minimized download size.
- * 
+ *
  * In DEVELOPMENT we show the "original" url including the php script to
  * simulate what we want with the htaccess redirection.
- * 
+ *
  * In PRODUCTION, the filename is modified to point to the minified file.
  * This assumes that the "juiced" files are minified before deployment.
- * 
+ *
  * @param  string $url  Asset file url, relative to the web document root
  * @return string  Asset url with version number inserted
  */
@@ -121,7 +121,7 @@ function getRevvedUrl($url)
   {
     return $url;
   }
-  
+
   // do not use minified javascripts in debug environment
   if (APP_ENVIRONMENT === 'dev')
   {
@@ -133,7 +133,7 @@ function getRevvedUrl($url)
     // in production environment, get the minified version
     $url = str_replace('.juicy.', '.min.', $url);
 
-    // set version string based on the source file's timestamp 
+    // set version string based on the source file's timestamp
     $ver =  '_v' . filemtime(APP_WEB_ROOT . DIRECTORY_SEPARATOR . $url);
 
     $path = pathinfo($url);
